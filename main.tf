@@ -8,7 +8,9 @@ terraform {
 }
 
 # Configure the AWS Provider
-provider "aws" {}
+provider "aws" {
+  region = "us-east-1"
+}
 
 # Create a new VPC with public subnet and Internet Gateway
 resource "aws_vpc" "my_vpc" {
@@ -58,7 +60,7 @@ resource "aws_route_table_association" "my_subnet_association" {
 }
 
 
-# Create a security group to allow SSH access
+# Create a security group
 resource "aws_security_group" "my-sg" {
   name_prefix = "sgrp-"
   vpc_id      = aws_vpc.my_vpc.id
@@ -85,7 +87,6 @@ resource "aws_instance" "my_ec2_instance" {
   instance_type          = "t3.nano"
   subnet_id              = aws_subnet.my_public_subnet.id
   vpc_security_group_ids = [aws_security_group.my-sg.id]
-  key_name               = "felipe284"
 
   # Install Gunicorn using user data
   user_data = <<-EOF
