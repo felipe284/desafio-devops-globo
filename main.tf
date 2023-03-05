@@ -62,7 +62,7 @@ resource "aws_route_table_association" "my_subnet_association" {
 
 # Create a security group
 resource "aws_security_group" "my-sg" {
-  name_prefix = "sgrp-"
+  name_prefix = "my-sg-"
   vpc_id      = aws_vpc.my_vpc.id
 
   ingress {
@@ -104,6 +104,34 @@ resource "aws_instance" "my_ec2_instance" {
   tags = {
     Name = "gunicorn-app"
   }
+}
+
+resource "aws_cloudwatch_metric_alarm" "ec2_instance_down" {
+  alarm_name          = "EC2_Instance_Down"
+  comparison_operator = "LessThanOrEqualToThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "StatusCheckFailed"
+  namespace           = "AWS/EC2"
+  period              = "60"
+  statistic           = "Maximum"
+  threshold           = "0"
+
+  dimensions = {
+    InstanceId = "${aws_instance.my_ec2_instance.id}"
+  }
+
+  alarm_description = "Esta métrica monitora o status da instância EC2 e dispara um alarme se ela estiver inoperante."
+  alarm_actions     = ["${aws_sns_topic.notification.arn}"]
+}
+
+resource "aws_sns_topic" "notification" {
+  name = "EC2_Instance_Down_Notification"
+}
+
+resource "aws_sns_topic_subscription" "email" {
+  topic_arn = aws_sns_topic.notification.arn
+  protocol  = "email"
+  endpoint  = "email@email.com"
 }
 
 
