@@ -8,9 +8,7 @@ terraform {
 }
 
 # Configure the AWS Provider
-provider "aws" {
-  region = "us-east-1"
-}
+provider "aws" {}
 
 # Create a new VPC with public subnet and Internet Gateway
 resource "aws_vpc" "my_vpc" {
