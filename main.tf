@@ -9,7 +9,9 @@ terraform {
 
 # Configure the AWS Provider
 provider "aws" {
-  region = "us-east-1"
+  region     = "us-east-1"
+  access_key = "AKIAWOVE7JYTIWPKRKIX"
+  secret_key = "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"
 }
 
 # Create a new VPC with public subnet and Internet Gateway
