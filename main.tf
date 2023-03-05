@@ -62,7 +62,7 @@ resource "aws_route_table_association" "my_subnet_association" {
 
 # Create a security group to allow SSH access
 resource "aws_security_group" "my-sg" {
-  name_prefix = "secgroup-"
+  name_prefix = "sgrp-"
   vpc_id      = aws_vpc.my_vpc.id
 
   ingress {
