@@ -9,7 +9,7 @@ A instância que é lançada utiliza o sistema operacional Amazon Linux 2 e no "
 
 O pipeline de deploy automático utiliza o Github Actions e em um runner Ubuntu executa o Terraform utilizando as credenciais configuradas nas Actions Secrets. Sendo dessa forma para evitar de ter credeciais nos arquivos. Obs: as credenciais utilizadas já estão desativadas na conta da AWS utilizada para o teste.
 
-Para monitoramento do serviço, é utilizado o Cloudwatch da AWS. O serviço monitora se a CPU da instancia EC2 e gera um alerta caso exceda 80% de processamento.
+Para monitoramento do serviço, é utilizado o Cloudwatch da AWS. O serviço monitora a CPU da instancia EC2 e gera um alerta caso exceda 80% de processamento. O Arquivo de configuração do CloudWatch agent também é criado no UserData.
 
 Os testes iniciais foram feitos diretamente da minha estação rodando o Terraform e criando o ambiente na conta de testes da AWS. Após ter ambiente funcionando, migrei os códigos para o repositório do Github e comecei os testes do deploy automatizado.
 
