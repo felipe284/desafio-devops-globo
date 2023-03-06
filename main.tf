@@ -92,7 +92,61 @@ resource "aws_instance" "my_ec2_instance" {
   user_data = <<-EOF
               #!/bin/bash
               sudo yum update -y
-              sudo yum install python3 git -y
+              sudo yum install python3 git amazon-cloudwatch-agent -y
+
+              sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc/
+              cd /opt/aws/amazon-cloudwatch-agent/etc/
+              cat << EOF2 > config.json
+              {
+                  "metrics": {
+                      "namespace": "CWAgent",
+                      "metrics_collected": {
+                          "cpu": {
+                              "measurement": [
+                                  "cpu_usage_idle",
+                                  "cpu_usage_iowait",
+                                  "cpu_usage_user",
+                                  "cpu_usage_system"
+                              ],
+                              "metrics_collection_interval": 60,
+                              "totalcpu": true
+                          },
+                          "disk": {
+                              "measurement": [
+                                  "used_percent",
+                                  "inodes_free",
+                                  "inodes_total",
+                                  "inodes_used",
+                                  "space_free",
+                                  "space_total",
+                                  "space_used"
+                              ],
+                              "metrics_collection_interval": 60,
+                              "resources": [
+                                  "/",
+                                  "/var"
+                              ]
+                          },
+                          "net": {
+                              "measurement": [
+                                  "bytes_in",
+                                  "bytes_out",
+                                  "packets_in",
+                                  "packets_out"
+                              ],
+                              "metrics_collection_interval": 60,
+                              "interface_counters": {
+                                  "interface_names": [
+                                      "eth0"
+                                  ]
+                              }
+                          }
+                      }
+                  }
+              }
+              EOF2
+              sudo systemctl restart amazon-cloudwatch-agent.service
+
               sudo pip3 install gunicorn
               sudo pip3 install flask
               cd /opt
@@ -106,34 +160,26 @@ resource "aws_instance" "my_ec2_instance" {
   }
 }
 
-resource "aws_cloudwatch_metric_alarm" "ec2_instance_down" {
-  alarm_name          = "EC2_Instance_Down"
-  comparison_operator = "LessThanOrEqualToThreshold"
+resource "aws_cloudwatch_metric_alarm" "cpu_alarm" {
+  alarm_name          = "High CPU Utilization"
+  comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
-  metric_name         = "StatusCheckFailed"
+  metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
   period              = "60"
-  statistic           = "Maximum"
-  threshold           = "0"
+  statistic           = "Average"
+  threshold           = "80"
+  alarm_description   = "This metric monitors the CPU utilization of an EC2 instance and triggers an alarm if it exceeds 80%."
+  alarm_actions       = [aws_sns_topic.cpu_alert.arn]
 
   dimensions = {
-    InstanceId = "${aws_instance.my_ec2_instance.id}"
+    InstanceId = aws_instance.my_ec2_instance.id
   }
-
-  alarm_description = "Esta métrica monitora o status da instância EC2 e dispara um alarme se ela estiver inoperante."
-  alarm_actions     = ["${aws_sns_topic.notification.arn}"]
 }
 
-resource "aws_sns_topic" "notification" {
-  name = "EC2_Instance_Down_Notification"
+resource "aws_sns_topic" "cpu_alert" {
+  name = "cpu-alert"
 }
-
-resource "aws_sns_topic_subscription" "email" {
-  topic_arn = aws_sns_topic.notification.arn
-  protocol  = "email"
-  endpoint  = "email@email.com"
-}
-
 
 output "ec2_global_ips" {
   value = ["Application Public IP:", "${aws_instance.my_ec2_instance.*.public_ip}"]
