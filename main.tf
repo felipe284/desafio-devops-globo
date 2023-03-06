@@ -136,5 +136,5 @@ resource "aws_sns_topic_subscription" "email" {
 
 
 output "ec2_global_ips" {
-  value = ["Public IP:", "${aws_instance.my_ec2_instance.*.public_ip}"]
+  value = ["Application Public IP:", "${aws_instance.my_ec2_instance.*.public_ip}"]
 }
